@@ -1,0 +1,168 @@
+import os
+import tabula
+import pandas as pd
+import pytesseract
+from pdf2image import convert_from_path
+from docx import Document
+
+# Base folder jahan PDFs maujood hain
+base_folder = r"C:\Users\user\OneDrive\Documenten\mm"
+
+# Alag-alag output directories ke paths
+csv_dir   = os.path.join(base_folder, "CSV File")
+excel_dir = os.path.join(base_folder, "Excel Sheet")
+html_dir  = os.path.join(base_folder, "HTML File")
+json_dir  = os.path.join(base_folder, "JSON File")
+word_dir  = os.path.join(base_folder, "Word")  # Word output ke liye
+
+# Sabhi required folders create karein agar exist na karte ho
+os.makedirs(csv_dir, exist_ok=True)
+os.makedirs(excel_dir, exist_ok=True)
+os.makedirs(html_dir, exist_ok=True)
+os.makedirs(json_dir, exist_ok=True)
+os.makedirs(word_dir, exist_ok=True)
+
+# Base folder se saari PDF files ko read karein
+pdf_files = [f for f in os.listdir(base_folder) if f.lower().endswith('.pdf')]
+if not pdf_files:
+    print("Folder mein koi PDF file nahi mili.")
+    exit()
+
+# Har PDF file ko process kar ke alag Excel (aur dusre formats) banayein
+for pdf_file in pdf_files:
+    pdf_path = os.path.join(base_folder, pdf_file)
+    print(f"\nProcessing {pdf_file}...")
+    
+    # Sheet ka naam PDF file ke naam se (extension ke bina)
+    base_sheet_name = pdf_file.replace(".pdf", "")
+    if len(base_sheet_name) > 31:
+        base_sheet_name = base_sheet_name[:31]
+    
+    # Excel file ka path
+    excel_file_path = os.path.join(excel_dir, base_sheet_name + ".xlsx")
+    
+    with pd.ExcelWriter(excel_file_path) as writer:
+        try:
+            print(f"Tabula ka use karke {pdf_file} se data extract kar rahe hain...")
+            tables = tabula.read_pdf(pdf_path, pages="all", multiple_tables=True)
+            
+            # Agar koi table na mile to text extract karein
+            if tables is None or len(tables) == 0:
+                print(f"{pdf_file} mein koi table nahi mila. Text extract kar rahe hain...")
+                images = convert_from_path(pdf_path)
+                extracted_text = ""
+                for image in images:
+                    extracted_text += pytesseract.image_to_string(image)
+                
+                # Text ko DataFrame mein convert karein (row format)
+                df = pd.DataFrame([extracted_text.split('\n')])
+                df.to_excel(writer, sheet_name=base_sheet_name, index=False)
+                
+                # CSV file save karein
+                csv_file_path = os.path.join(csv_dir, base_sheet_name + ".csv")
+                df.to_csv(csv_file_path, index=False)
+                
+                # JSON file save karein
+                json_file_path = os.path.join(json_dir, base_sheet_name + ".json")
+                df.to_json(json_file_path, orient="records", force_ascii=False)
+                
+                # HTML file save karein
+                html_file_path = os.path.join(html_dir, base_sheet_name + ".html")
+                df.to_html(html_file_path, index=False)
+                
+                print(f"Text data successfully extract ho gaya aur save ho gaya:")
+                print(f"  Excel: {excel_file_path}")
+                print(f"  CSV: {csv_file_path}")
+                print(f"  JSON: {json_file_path}")
+                print(f"  HTML: {html_file_path}")
+            else:
+                # Agar sirf ek table mila hai
+                if len(tables) == 1:
+                    tables[0].to_excel(writer, sheet_name=base_sheet_name, index=False)
+                    
+                    csv_file_path = os.path.join(csv_dir, base_sheet_name + ".csv")
+                    tables[0].to_csv(csv_file_path, index=False)
+                    
+                    json_file_path = os.path.join(json_dir, base_sheet_name + ".json")
+                    tables[0].to_json(json_file_path, orient="records", force_ascii=False)
+                    
+                    html_file_path = os.path.join(html_dir, base_sheet_name + ".html")
+                    tables[0].to_html(html_file_path, index=False)
+                    
+                    print(f"Data successfully extract ho gaya aur save ho gaya:")
+                    print(f"  Excel: {excel_file_path}")
+                    print(f"  CSV: {csv_file_path}")
+                    print(f"  JSON: {json_file_path}")
+                    print(f"  HTML: {html_file_path}")
+                else:
+                    # Agar multiple tables mile hain to har ek ko alag sheet mein likhein
+                    for i, table in enumerate(tables):
+                        suffix = f"_P{i+1}"
+                        max_base_length = 31 - len(suffix)
+                        sheet_name = (base_sheet_name[:max_base_length] + suffix)[:31]
+                        table.to_excel(writer, sheet_name=sheet_name, index=False)
+                        
+                        csv_file_name = base_sheet_name + suffix + ".csv"
+                        csv_file_path = os.path.join(csv_dir, csv_file_name)
+                        table.to_csv(csv_file_path, index=False)
+                        
+                        json_file_name = base_sheet_name + suffix + ".json"
+                        json_file_path = os.path.join(json_dir, json_file_name)
+                        table.to_json(json_file_path, orient="records", force_ascii=False)
+                        
+                        html_file_name = base_sheet_name + suffix + ".html"
+                        html_file_path = os.path.join(html_dir, html_file_name)
+                        table.to_html(html_file_path, index=False)
+                    
+                    print(f"Multiple tables extract hue. Data save ho gaya in:")
+                    print(f"  Excel: {excel_file_path}")
+                    print(f"  CSV, JSON, HTML respective folders mein.")
+        except Exception as e:
+            print(f"Error while extracting data from {pdf_file}: {str(e)}")
+    
+    print(f"Data successfully saved to {excel_file_path}")
+
+# Ab Excel files ko read karke Word document me convert karte hain
+excel_files = [f for f in os.listdir(excel_dir) if f.lower().endswith('.xlsx')]
+if not excel_files:
+    print("Excel folder mein koi file nahi mili.")
+    exit()
+
+for excel_file in excel_files:
+    excel_path = os.path.join(excel_dir, excel_file)
+    print(f"\nConverting {excel_file} to Word document...")
+    try:
+        # Excel file ke sabhi sheets ko read karein
+        xls = pd.ExcelFile(excel_path)
+        document = Document()
+        # Document ka title set karein
+        document.add_heading(excel_file.replace('.xlsx',''), 0)
+        
+        # Har sheet ke liye:
+        for sheet_name in xls.sheet_names:
+            df = pd.read_excel(xls, sheet_name=sheet_name)
+            document.add_heading(sheet_name, level=1)
+            
+            if df.empty:
+                document.add_paragraph("Is sheet mein koi data nahi hai.")
+            else:
+                # Table add karne ke liye: header ke saath
+                table = document.add_table(rows=1, cols=len(df.columns))
+                hdr_cells = table.rows[0].cells
+                for idx, col in enumerate(df.columns):
+                    hdr_cells[idx].text = str(col)
+                
+                # Data rows add karein
+                for index, row in df.iterrows():
+                    row_cells = table.add_row().cells
+                    for idx, item in enumerate(row):
+                        row_cells[idx].text = str(item)
+                document.add_paragraph()  # Break ke liye
+                
+        # Word document ka path set karein aur save karein
+        word_file_name = excel_file.replace('.xlsx', '.docx')
+        word_file_path = os.path.join(word_dir, word_file_name)
+        document.save(word_file_path)
+        print(f"Word document save ho gaya: {word_file_path}")
+    except Exception as e:
+        print(f"Error converting {excel_file} to Word: {str(e)}")
