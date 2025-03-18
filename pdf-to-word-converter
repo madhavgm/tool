@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF to Word Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        input[type="file"] {
+            display: block;
+            margin: 20px auto;
+        }
+        button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #output {
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PDF to Word Converter</h1>
+        <input type="file" id="pdfFile" accept="application/pdf">
+        <button onclick="convertPdfToWord()">Convert to Word</button>
+        <div id="output"></div>
+    </div>
+
+    <!-- PDF.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <!-- Tesseract.js Library -->
+    <script src="https://unpkg.com/tesseract.js@2.1.4/dist/tesseract.min.js"></script>
+    <script>
+        async function convertPdfToWord() {
+            const pdfFileInput = document.getElementById('pdfFile');
+            const outputDiv = document.getElementById('output');
+
+            if (pdfFileInput.files.length === 0) {
+                outputDiv.innerHTML = '<p style="color: red;">Please select a PDF file.</p>';
+                return;
+            }
+
+            const pdfFile = pdfFileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = async function(event) {
+                try {
+                    const pdfData = new Uint8Array(event.target.result);
+                    const textContent = await extractTextFromPdf(pdfData);
+
+                    if (textContent.trim() === '') {
+                        // If no text, use OCR on images
+                        const images = await extractImagesFromPdf(pdfData);
+                        let ocrText = '';
+                        for (const image of images) {
+                            const { data: { text } } = await Tesseract.recognize(image);
+                            ocrText += text + '\n';
+                        }
+                        textContent = ocrText;
+                    }
+
+                    // Convert text to Word (simplified example)
+                    const blob = new Blob([textContent], { type: 'application/msword' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'converted.doc';
+                    a.click();
+                    URL.revokeObjectURL(url);
+
+                    outputDiv.innerHTML = '<p style="color: green;">Conversion successful! Download your Word file.</p>';
+                } catch (error) {
+                    outputDiv.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+                }
+            };
+
+            reader.readAsArrayBuffer(pdfFile);
+        }
+
+        async function extractTextFromPdf(pdfData) {
+            const loadingTask = pdfjsLib.getDocument({ data: pdfData });
+            const pdf = await loadingTask.promise;
+            let textContent = '';
+
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const text = await page.getTextContent();
+                textContent += text.items.map(item => item.str).join(' ') + '\n';
+            }
+
+            return textContent;
+        }
+
+        async function extractImagesFromPdf(pdfData) {
+            // Placeholder function to extract images from PDF
+            // You can use libraries like pdf.js for this
+            return [];
+        }
+    </script>
+</body>
+</html>
