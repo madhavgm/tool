@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Your one-stop destination for free online tools. Compress images, convert PDFs, and more. Fast, easy, and user-friendly.">
+    <meta name="keywords" content="online tools, image tools, PDF tools, compress images, convert PDF, free tools">
+    <meta name="author" content="Your Name">
+    <title>Online Tools - Free Image & PDF Tools</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+    <style>
+        /* General Styles */
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* Header */
+        header {
+            background-color: #007BFF;
+            color: #fff;
+            padding: 40px 10%;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.8rem;
+            font-weight: 700;
+        }
+
+        header p {
+            margin: 10px 0 0;
+            font-size: 1.2rem;
+            font-weight: 400;
+        }
+
+        /* Main Content */
+        main {
+            padding: 20px 10%;
+        }
+
+        /* Tool Categories Section */
+        .categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .category-card {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .category-card img {
+            width: 70px;
+            height: 70px;
+            margin-bottom: 15px;
+        }
+
+        .category-card h3 {
+            margin: 0;
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        .category-card p {
+            margin: 10px 0 0;
+            font-size: 0.95rem;
+            color: #666;
+        }
+
+        /* Featured Tools Section */
+        .featured-tools {
+            margin-top: 60px;
+        }
+
+        .featured-tools h2 {
+            text-align: center;
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 40px;
+        }
+
+        .tool-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .tool-card {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .tool-card img {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 15px;
+        }
+
+        .tool-card h3 {
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .tool-card p {
+            margin: 10px 0 0;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        /* Call-to-Action Section */
+        .cta {
+            background-color: #007BFF;
+            color: #fff;
+            padding: 60px 20px;
+            text-align: center;
+            margin-top: 60px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .cta h2 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .cta p {
+            margin: 10px 0 20px;
+            font-size: 1.2rem;
+        }
+
+        .cta-button {
+            background-color: #fff;
+            color: #007BFF;
+            padding: 12px 25px;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .cta-button:hover {
+            background-color: #f1f1f1;
+            color: #0056b3;
+        }
+
+        /* Testimonials Section */
+        .testimonials {
+            margin-top: 60px;
+            text-align: center;
+        }
+
+        .testimonials h2 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 40px;
+        }
+
+        .testimonial-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .testimonial-card {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .testimonial-card p {
+            margin: 0;
+            font-size: 0.95rem;
+            color: #666;
+        }
+
+        .testimonial-card span {
+            display: block;
+            margin-top: 10px;
+            font-weight: 600;
+            color: #007BFF;
+        }
+
+        /* Footer */
+        footer {
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            padding: 20px;
+            margin-top: 60px;
+        }
+
+        footer p {
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2.2rem;
+            }
+
+            header p {
+                font-size: 1rem;
+            }
+
+            .cta h2 {
+                font-size: 2rem;
+            }
+
+            .cta p {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <h1>Online Tools</h1>
+        <p>Your one-stop destination for free online tools. Compress images, convert PDFs, and more.</p>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Tool Categories -->
+        <section class="categories">
+            <div class="category-card">
+                <img src="https://cdn-icons-png.flaticon.com/512/3767/3767084.png" alt="Image Tools">
+                <h3>Image Tools</h3>
+                <p>Compress, resize, and convert images with ease.</p>
+            </div>
+            <div class="category-card">
+                <img src="https://cdn-icons-png.flaticon.com/512/337/337946.png" alt="PDF Tools">
+                <h3>PDF Tools</h3>
+                <p>Merge, split, and convert PDFs effortlessly.</p>
+            </div>
+            <div class="category-card">
+                <img src="https://cdn-icons-png.flaticon.com/512/1997/1997928.png" alt="Other Tools">
+                <h3>Other Tools</h3>
+                <p>Explore more tools for your daily needs.</p>
+            </div>
+        </section>
+
+        <!-- Featured Tools -->
+        <section class="featured-tools">
+            <h2>Featured Tools</h2>
+            <div class="tool-grid">
+                <div class="tool-card">
+                    <img src="https://cdn-icons-png.flaticon.com/512/3767/3767084.png" alt="Image Compressor">
+                    <h3>Image Compressor</h3>
+                    <p>Reduce image size without losing quality.</p>
+                </div>
+                <div class="tool-card">
+                    <img src="https://cdn-icons-png.flaticon.com/512/337/337946.png" alt="PDF Merger">
+                    <h3>PDF Merger</h3>
+                    <p>Combine multiple PDFs into one.</p>
+                </div>
+                <div class="tool-card">
+                    <img src="https://cdn-icons-png.flaticon.com/512/1997/1997928.png" alt="File Converter">
+                    <h3>File Converter</h3>
+                    <p>Convert files to various formats.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Testimonials -->
+        <section class="testimonials">
+            <h2>What Our Users Say</h2>
+            <div class="testimonial-grid">
+                <div class="testimonial-card">
+                    <p>"This website is a lifesaver! The tools are fast and easy to use."</p>
+                    <span>- John Doe</span>
+                </div>
+                <div class="testimonial-card">
+                    <p>"I use this site daily for my work. Highly recommended!"</p>
+                    <span>- Jane Smith</span>
+                </div>
+                <div class="testimonial-card">
+                    <p>"The best free tools I've ever used. Thank you!"</p>
+                    <span>- Mike Johnson</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Call-to-Action -->
+        <section class="cta">
+            <h2>Explore All Tools</h2>
+            <p>Discover a wide range of free tools to simplify your tasks.</p>
+            <a href="#" class="cta-button">Get Started</a>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2023 Online Tools. All rights reserved.</p>
+    </footer>
+</body>
+</html>
