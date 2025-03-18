@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Essential Meta Tags -->
+  <!-- Essential Meta Tags for SEO -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PDF to Sheet Converter | Dynamic & Responsive Tool</title>
-  <meta name="description" content="Convert your PDFs to interactive sheets using our dynamic, responsive PDF to Sheet converter. Optimized for performance and SEO, with ad spaces for monetization.">
-  <meta name="keywords" content="PDF to Sheet, PDF Converter, Responsive Tool, SEO Optimized, Google AdSense">
+  <meta name="description" content="Convert your PDFs to interactive sheets using our dynamic, responsive PDF to Sheet converter. Fully functional with download capability and optimized for performance and SEO.">
+  <meta name="keywords" content="PDF to Sheet, PDF Converter, Download, Responsive Tool, SEO Optimized, Google AdSense">
   
-  <!-- Styles for responsiveness and basic design -->
+  <!-- Basic Styles -->
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -55,6 +55,7 @@
       color: #fff;
       border-radius: 4px;
       cursor: pointer;
+      margin-right: 0.5rem;
     }
     button:hover {
       background-color: #0056b3;
@@ -82,7 +83,7 @@
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
   <script>
     (adsbygoogle = window.adsbygoogle || []).push({
-      google_ad_client: "YOUR_AD_UNIT_ID", // Insert your AdSense Ad Unit ID here
+      google_ad_client: "YOUR_AD_UNIT_ID", // Replace with your actual AdSense Ad Unit ID
       enable_page_level_ads: true
     });
   </script>
@@ -116,6 +117,8 @@
     <!-- Output Section -->
     <section class="output-section">
       <h2>Converted Sheet</h2>
+      <!-- Download Button -->
+      <button id="download-btn" style="display:none;">Download as CSV</button>
       <div id="sheet-output">
         <!-- Dynamic sheet content will be injected here -->
       </div>
@@ -127,7 +130,11 @@
   
   <!-- JavaScript for Dynamic Functionality -->
   <script>
-    document.getElementById('convert-btn').addEventListener('click', function() {
+    const convertBtn = document.getElementById('convert-btn');
+    const downloadBtn = document.getElementById('download-btn');
+    const sheetOutput = document.getElementById('sheet-output');
+
+    convertBtn.addEventListener('click', function() {
       const fileInput = document.getElementById('pdf-input');
       if (fileInput.files.length === 0) {
         alert('Please select a PDF file.');
@@ -147,14 +154,14 @@
           for (let i = 1; i <= totalPages; i++) {
             pdf.getPage(i).then(function(page) {
               page.getTextContent().then(function(textContent) {
-                // Combine all text items into one string per page
+                // Combine all text items to preserve order and formatting as much as possible
                 const pageText = textContent.items.map(item => item.str).join(" ");
                 tableRows += `<tr><td>Page ${i}</td><td>${pageText}</td></tr>`;
                 pagesProcessed++;
                 
-                // Once all pages are processed, display the result
+                // Once all pages are processed, display the result and enable download
                 if (pagesProcessed === totalPages) {
-                  document.getElementById('sheet-output').innerHTML = `
+                  sheetOutput.innerHTML = `
                     <table>
                       <thead>
                         <tr>
@@ -167,6 +174,7 @@
                       </tbody>
                     </table>
                   `;
+                  downloadBtn.style.display = 'inline-block';
                 }
               });
             });
@@ -178,6 +186,33 @@
       };
       
       fileReader.readAsArrayBuffer(file);
+    });
+
+    // Function to download the table content as CSV
+    downloadBtn.addEventListener('click', function() {
+      let csvContent = "data:text/csv;charset=utf-8,";
+      csvContent += "Page,Content\n";
+      
+      // Get table rows
+      const rows = document.querySelectorAll("table tr");
+      rows.forEach(row => {
+        const cols = row.querySelectorAll("th, td");
+        let rowData = [];
+        cols.forEach(col => {
+          // Escape double quotes and wrap the column in quotes
+          rowData.push('"' + col.innerText.replace(/"/g, '""') + '"');
+        });
+        csvContent += rowData.join(",") + "\n";
+      });
+      
+      // Create a download link and trigger the download
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "converted_sheet.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     });
   </script>
 </body>
