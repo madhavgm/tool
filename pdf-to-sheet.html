@@ -2,14 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>PDF to Excel Converter | Free Online Document Conversion Tool</title>
-  <meta name="description" content="Convert PDF files to Excel spreadsheets instantly with our free online converter. Perfect for data extraction and table conversions. Supports all formats and devices." />
+  <meta name="description" content="Convert PDF files to Excel (CSV) spreadsheets instantly with our free online converter. Perfect for data extraction and table conversions. Supports all formats and devices." />
   <meta name="keywords" content="PDF to Excel, PDF Converter, Excel Converter, Document Conversion, Free PDF Converter" />
   <meta name="author" content="Your Company Name" />
 
-  <!-- Google AdSense -->
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+  <!-- Google AdSense (replace with your own client ID) -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
+    crossorigin="anonymous"></script>
+
+  <!-- PDF.js Library (for text extraction) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
 
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
@@ -80,7 +84,7 @@
         <input type="file" id="fileInput" accept=".pdf" class="form-control" style="display: none;" />
       </div>
 
-      <!-- Conversion Options -->
+      <!-- Conversion Options (optional checkboxes) -->
       <div class="mb-3">
         <div class="form-check form-check-inline">
           <input class="form-check-input" type="checkbox" id="preserveFormatting" />
@@ -94,7 +98,10 @@
 
       <!-- Progress Bar -->
       <div class="progress" id="progressContainer">
-        <div class="progress-bar progress-bar-striped" role="progressbar" style="width: 0%" id="progressBar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+        <div class="progress-bar progress-bar-striped" role="progressbar"
+             style="width: 0%" id="progressBar"
+             aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+        </div>
       </div>
 
       <!-- Convert Button -->
@@ -102,7 +109,9 @@
 
       <!-- Download Section -->
       <div id="resultSection" class="mt-3" style="display: none;">
-        <a id="downloadLink" class="btn btn-success w-100" download="converted_excel.csv">Download Excel File</a>
+        <a id="downloadLink" class="btn btn-success w-100" download="converted_data.csv">
+          Download Excel File
+        </a>
       </div>
     </div>
   </main>
@@ -124,24 +133,33 @@
     <p>© 2023 PDF to Excel Converter. All rights reserved.</p>
   </footer>
 
+  <!-- Bootstrap JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
   <script>
-    // Handle drag & drop functionality
+    /********************************************
+     * DRAG & DROP FUNCTIONALITY
+     ********************************************/
     const dropZone = document.getElementById('dropZone');
     const fileInput = document.getElementById('fileInput');
 
+    // Clicking on the drop zone triggers file selection
     dropZone.addEventListener('click', () => fileInput.click());
 
-    dropZone.addEventListener('dragover', function(e) {
+    // Highlight drop zone on dragover
+    dropZone.addEventListener('dragover', (e) => {
       e.preventDefault();
       dropZone.classList.add('dragover');
     });
 
-    dropZone.addEventListener('dragleave', function(e) {
+    // Remove highlight when dragging leaves
+    dropZone.addEventListener('dragleave', (e) => {
       e.preventDefault();
       dropZone.classList.remove('dragover');
     });
 
-    dropZone.addEventListener('drop', function(e) {
+    // When a file is dropped
+    dropZone.addEventListener('drop', (e) => {
       e.preventDefault();
       dropZone.classList.remove('dragover');
       if (e.dataTransfer.files.length) {
@@ -149,48 +167,88 @@
       }
     });
 
-    // Conversion simulation and download generation
+    /********************************************
+     * PDF TO TEXT CONVERSION (USING PDF.js)
+     ********************************************/
     const convertBtn = document.getElementById('convertBtn');
     const progressContainer = document.getElementById('progressContainer');
     const progressBar = document.getElementById('progressBar');
     const resultSection = document.getElementById('resultSection');
     const downloadLink = document.getElementById('downloadLink');
 
-    convertBtn.addEventListener('click', () => {
+    convertBtn.addEventListener('click', async () => {
       if (!fileInput.files.length) {
         alert('Please select a PDF file.');
         return;
       }
-
+      // Reset UI states
       progressContainer.style.display = 'block';
       progressBar.style.width = '0%';
       progressBar.setAttribute('aria-valuenow', 0);
       resultSection.style.display = 'none';
 
-      let progress = 0;
-      const interval = setInterval(() => {
-        progress += 10;
-        progressBar.style.width = `${progress}%`;
-        progressBar.setAttribute('aria-valuenow', progress);
-        if (progress >= 100) {
-          clearInterval(interval);
-          generateDownload();
+      // Read the PDF file
+      const file = fileInput.files[0];
+      const fileReader = new FileReader();
+
+      fileReader.onload = async function() {
+        try {
+          const typedarray = new Uint8Array(this.result);
+          // Load the PDF with PDF.js
+          const pdf = await pdfjsLib.getDocument(typedarray).promise;
+          const totalPages = pdf.numPages;
+
+          let csvLines = [];
+          let pagesProcessed = 0;
+
+          // Optional: Add a header row if you want
+          // csvLines.push("Customer ID,Name,Age,Gender,City,Email,Phone Number,Last Purchase Date,Lifetime Value");
+
+          // Process each page
+          for (let pageNumber = 1; pageNumber <= totalPages; pageNumber++) {
+            const page = await pdf.getPage(pageNumber);
+            const textContent = await page.getTextContent();
+            
+            // Extract the text items and join them
+            let pageText = textContent.items.map(item => item.str).join(' ');
+
+            // Option A: Put each page’s entire text on one CSV line
+            // csvLines.push(`"Page ${pageNumber}","${pageText.replace(/"/g, '""')}"`);
+
+            // Option B: Split the page’s text into separate lines (if the PDF has line breaks)
+            // For a rough approach, you can split by big spaces or newlines:
+            // We’ll just push each line individually to the CSV.
+            let lines = pageText.split(/\r?\n/);
+            lines.forEach(line => {
+              // Escape quotes for CSV
+              const safeLine = line.replace(/"/g, '""');
+              csvLines.push(`"${safeLine}"`);
+            });
+
+            // Update progress bar
+            pagesProcessed++;
+            const progressPercent = Math.round((pagesProcessed / totalPages) * 100);
+            progressBar.style.width = progressPercent + '%';
+            progressBar.setAttribute('aria-valuenow', progressPercent);
+          }
+
+          // Generate final CSV string
+          const csvContent = csvLines.join('\n');
+          // Create a Blob for download
+          const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+          const url = URL.createObjectURL(blob);
+          downloadLink.href = url;
+
+          // Show the result (download button)
+          resultSection.style.display = 'block';
+        } catch (err) {
+          console.error('Error extracting PDF text:', err);
+          alert('Could not extract text from PDF. Make sure the file is not password protected or corrupted.');
         }
-      }, 300);
+      };
+
+      fileReader.readAsArrayBuffer(file);
     });
-
-    function generateDownload() {
-      // Simulated converted CSV content
-      // Replace this with actual conversion logic and data as needed.
-      const csvContent = "Page,Content\n1,Sample content from PDF page 1\n2,Sample content from PDF page 2";
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      downloadLink.href = url;
-      resultSection.style.display = 'block';
-    }
   </script>
-
-  <!-- Bootstrap JS Bundle -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
