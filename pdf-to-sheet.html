@@ -1,73 +1,184 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Convert PDF tables to CSV files instantly. Free and easy-to-use online tool for extracting data from PDFs.">
-    <meta name="keywords" content="PDF to CSV, PDF converter, extract tables, free PDF tool">
-    <meta name="author" content="Your Name">
-    <title>PDF to CSV Converter</title>
-    <link rel="stylesheet" href="styles.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <!-- Essential Meta Tags -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF to Sheet Converter | Dynamic & Responsive Tool</title>
+  <meta name="description" content="Convert your PDFs to interactive sheets using our dynamic, responsive PDF to Sheet converter. Optimized for performance and SEO, with ad spaces for monetization.">
+  <meta name="keywords" content="PDF to Sheet, PDF Converter, Responsive Tool, SEO Optimized, Google AdSense">
+  
+  <!-- Styles for responsiveness and basic design -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+    header {
+      background-color: #333;
+      color: #fff;
+      padding: 1rem;
+      text-align: center;
+    }
+    .container {
+      padding: 1rem;
+      max-width: 1200px;
+      margin: auto;
+    }
+    .ad-banner {
+      margin: 1rem 0;
+      text-align: center;
+      border: 1px solid #ccc;
+      padding: 1rem;
+      background: #fff;
+    }
+    .input-section, .output-section {
+      margin: 1rem 0;
+      background: #fff;
+      padding: 1rem;
+      border-radius: 4px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    #pdf-input {
+      width: 100%;
+      padding: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    button {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      border: none;
+      background-color: #007BFF;
+      color: #fff;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+    th, td {
+      padding: 0.75rem;
+      text-align: left;
+    }
+    @media(max-width: 768px) {
+      header {
+        font-size: 1.2rem;
+      }
+    }
+  </style>
+  
+  <!-- Google AdSense Script -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+      google_ad_client: "YOUR_AD_UNIT_ID", // Insert your AdSense Ad Unit ID here
+      enable_page_level_ads: true
+    });
+  </script>
 </head>
 <body>
-    <header>
-        <h1>PDF to CSV Converter</h1>
-    </header>
-    
-    <!-- Google AdSense Placeholder -->
-    <div class="ad-container">
-        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-        <ins class="adsbygoogle"
-             style="display:block"
-             data-ad-client="ca-pub-XXXXXXXXXXXXXXX"
-             data-ad-slot="XXXXXXXXXX"
-             data-ad-format="auto"></ins>
-        <script>
-             (adsbygoogle = window.adsbygoogle || []).push({});
-        </script>
+  <header>
+    <h1>PDF to Sheet Converter</h1>
+  </header>
+  <div class="container">
+    <!-- Advertisement Space -->
+    <div class="ad-banner">
+      <!-- Google AdSense Ad Unit Code -->
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="YOUR_AD_UNIT_ID" 
+           data-ad-slot="1234567890" 
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+      </script>
     </div>
     
-    <main>
-        <input type="file" id="pdfFile" accept="application/pdf">
-        <button onclick="convertPDFtoCSV()">Convert to CSV</button>
-        <a id="downloadLink" style="display: none;">Download CSV File</a>
-    </main>
-
-    <script>
-        async function convertPDFtoCSV() {
-            const fileInput = document.getElementById('pdfFile');
-            if (!fileInput.files.length) {
-                alert('Please select a PDF file.');
-                return;
-            }
-
-            const file = fileInput.files[0];
-            const reader = new FileReader();
-
-            reader.onload = async function(event) {
-                const typedarray = new Uint8Array(event.target.result);
-                const pdf = await pdfjsLib.getDocument(typedarray).promise;
-                let extractedData = [];
-
-                for (let i = 1; i <= pdf.numPages; i++) {
-                    const page = await pdf.getPage(i);
-                    const textContent = await page.getTextContent();
-                    const pageText = textContent.items.map(item => item.str).join(',');
-                    extractedData.push([pageText]);
+    <!-- PDF Upload Section -->
+    <section class="input-section">
+      <h2>Upload Your PDF</h2>
+      <input type="file" id="pdf-input" accept="application/pdf">
+      <button id="convert-btn">Convert to Sheet</button>
+    </section>
+    
+    <!-- Output Section -->
+    <section class="output-section">
+      <h2>Converted Sheet</h2>
+      <div id="sheet-output">
+        <!-- Dynamic sheet content will be injected here -->
+      </div>
+    </section>
+  </div>
+  
+  <!-- Include PDF.js library from CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
+  
+  <!-- JavaScript for Dynamic Functionality -->
+  <script>
+    document.getElementById('convert-btn').addEventListener('click', function() {
+      const fileInput = document.getElementById('pdf-input');
+      if (fileInput.files.length === 0) {
+        alert('Please select a PDF file.');
+        return;
+      }
+      const file = fileInput.files[0];
+      const fileReader = new FileReader();
+      
+      fileReader.onload = function() {
+        const typedarray = new Uint8Array(this.result);
+        pdfjsLib.getDocument(typedarray).promise.then(function(pdf) {
+          const totalPages = pdf.numPages;
+          let pagesProcessed = 0;
+          let tableRows = '';
+          
+          // Process each page of the PDF
+          for (let i = 1; i <= totalPages; i++) {
+            pdf.getPage(i).then(function(page) {
+              page.getTextContent().then(function(textContent) {
+                // Combine all text items into one string per page
+                const pageText = textContent.items.map(item => item.str).join(" ");
+                tableRows += `<tr><td>Page ${i}</td><td>${pageText}</td></tr>`;
+                pagesProcessed++;
+                
+                // Once all pages are processed, display the result
+                if (pagesProcessed === totalPages) {
+                  document.getElementById('sheet-output').innerHTML = `
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Page</th>
+                          <th>Content</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${tableRows}
+                      </tbody>
+                    </table>
+                  `;
                 }
-
-                let csvContent = "data:text/csv;charset=utf-8," + extractedData.map(e => e.join(",")).join("\n");
-                const encodedUri = encodeURI(csvContent);
-                const link = document.getElementById('downloadLink');
-                link.href = encodedUri;
-                link.download = 'converted.csv';
-                link.style.display = 'block';
-                link.innerText = 'Download CSV File';
-            };
-
-            reader.readAsArrayBuffer(file);
-        }
-    </script>
+              });
+            });
+          }
+        }).catch(function(error) {
+          console.error('Error during PDF processing:', error);
+          alert('Failed to process PDF. Please try another file.');
+        });
+      };
+      
+      fileReader.readAsArrayBuffer(file);
+    });
+  </script>
 </body>
 </html>
