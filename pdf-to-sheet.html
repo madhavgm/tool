@@ -3,17 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Convert PDF tables to Excel sheets instantly. Free and easy-to-use online tool for extracting data from PDFs.">
-    <meta name="keywords" content="PDF to Excel, PDF converter, extract tables, free PDF tool">
+    <meta name="description" content="Convert PDF tables to CSV files instantly. Free and easy-to-use online tool for extracting data from PDFs.">
+    <meta name="keywords" content="PDF to CSV, PDF converter, extract tables, free PDF tool">
     <meta name="author" content="Your Name">
-    <title>PDF to Excel Converter</title>
+    <title>PDF to CSV Converter</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.3/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 </head>
 <body>
     <header>
-        <h1>PDF to Excel Converter</h1>
+        <h1>PDF to CSV Converter</h1>
     </header>
     
     <!-- Google AdSense Placeholder -->
@@ -31,12 +30,12 @@
     
     <main>
         <input type="file" id="pdfFile" accept="application/pdf">
-        <button onclick="convertPDFtoExcel()">Convert to Excel</button>
-        <a id="downloadLink" style="display: none;">Download Excel File</a>
+        <button onclick="convertPDFtoCSV()">Convert to CSV</button>
+        <a id="downloadLink" style="display: none;">Download CSV File</a>
     </main>
 
     <script>
-        async function convertPDFtoExcel() {
+        async function convertPDFtoCSV() {
             const fileInput = document.getElementById('pdfFile');
             if (!fileInput.files.length) {
                 alert('Please select a PDF file.');
@@ -54,21 +53,17 @@
                 for (let i = 1; i <= pdf.numPages; i++) {
                     const page = await pdf.getPage(i);
                     const textContent = await page.getTextContent();
-                    const pageText = textContent.items.map(item => item.str).join('\t');
+                    const pageText = textContent.items.map(item => item.str).join(',');
                     extractedData.push([pageText]);
                 }
 
-                const ws = XLSX.utils.aoa_to_sheet(extractedData);
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-                const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-                const data = new Blob([excelBuffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-                const url = URL.createObjectURL(data);
+                let csvContent = "data:text/csv;charset=utf-8," + extractedData.map(e => e.join(",")).join("\n");
+                const encodedUri = encodeURI(csvContent);
                 const link = document.getElementById('downloadLink');
-                link.href = url;
-                link.download = 'converted.xlsx';
+                link.href = encodedUri;
+                link.download = 'converted.csv';
                 link.style.display = 'block';
-                link.innerText = 'Download Excel File';
+                link.innerText = 'Download CSV File';
             };
 
             reader.readAsArrayBuffer(file);
