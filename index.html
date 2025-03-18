@@ -7,7 +7,11 @@
     <meta name="keywords" content="online tools, image tools, PDF tools, compress images, convert PDF, free tools">
     <meta name="author" content="Your Name">
     <title>Online Tools - Free Image & PDF Tools</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <!-- Custom Styles -->
     <style>
         /* General Styles */
         body {
@@ -17,6 +21,12 @@
             background-color: #f9f9f9;
             color: #333;
             line-height: 1.6;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        body.dark-mode {
+            background-color: #1a1a1a;
+            color: #f9f9f9;
         }
 
         a {
@@ -26,9 +36,9 @@
 
         /* Header */
         header {
-            background-color: #007BFF;
+            background: linear-gradient(135deg, #007BFF, #00BFFF);
             color: #fff;
-            padding: 40px 10%;
+            padding: 60px 10%;
             text-align: center;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
@@ -43,6 +53,25 @@
             margin: 10px 0 0;
             font-size: 1.2rem;
             font-weight: 400;
+        }
+
+        /* Dark Mode Toggle */
+        .dark-mode-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #007BFF;
+            color: #fff;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: background 0.3s ease;
+        }
+
+        .dark-mode-toggle:hover {
+            background: #0056b3;
         }
 
         /* Main Content */
@@ -88,6 +117,15 @@
             margin: 10px 0 0;
             font-size: 0.95rem;
             color: #666;
+        }
+
+        body.dark-mode .category-card {
+            background-color: #333;
+            color: #f9f9f9;
+        }
+
+        body.dark-mode .category-card p {
+            color: #ccc;
         }
 
         /* Featured Tools Section */
@@ -140,9 +178,18 @@
             color: #666;
         }
 
+        body.dark-mode .tool-card {
+            background-color: #333;
+            color: #f9f9f9;
+        }
+
+        body.dark-mode .tool-card p {
+            color: #ccc;
+        }
+
         /* Call-to-Action Section */
         .cta {
-            background-color: #007BFF;
+            background: linear-gradient(135deg, #007BFF, #00BFFF);
             color: #fff;
             padding: 60px 20px;
             text-align: center;
@@ -216,6 +263,19 @@
             color: #007BFF;
         }
 
+        body.dark-mode .testimonial-card {
+            background-color: #333;
+            color: #f9f9f9;
+        }
+
+        body.dark-mode .testimonial-card p {
+            color: #ccc;
+        }
+
+        body.dark-mode .testimonial-card span {
+            color: #00BFFF;
+        }
+
         /* Footer */
         footer {
             background-color: #333;
@@ -228,6 +288,10 @@
         footer p {
             margin: 0;
             font-size: 0.9rem;
+        }
+
+        body.dark-mode footer {
+            background-color: #1a1a1a;
         }
 
         /* Responsive Design */
@@ -251,6 +315,11 @@
     </style>
 </head>
 <body>
+    <!-- Dark Mode Toggle -->
+    <button class="dark-mode-toggle" onclick="toggleDarkMode()">
+        <i class="fas fa-moon"></i>
+    </button>
+
     <!-- Header -->
     <header>
         <h1>Online Tools</h1>
@@ -283,21 +352,25 @@
             <h2>Featured Tools</h2>
             <div class="tool-grid">
                 <div class="tool-card">
-             <a href="https://yourwebsite.com/image-compressor" target="_blank" style="text-decoration: none; color: inherit;">
-            <img src="https://cdn-icons-png.flaticon.com/512/3767/3767084.png" alt="Image Compressor">
-           <h3>Image Compressor</h3>
-           <p>Reduce image size without losing quality.</p>
-           </a>
-             </div>
-                <div class="tool-card">
-                    <img src="https://cdn-icons-png.flaticon.com/512/337/337946.png" alt="PDF Merger">
-                    <h3>PDF Merger</h3>
-                    <p>Combine multiple PDFs into one.</p>
+                    <a href="https://yourwebsite.com/image-compressor" target="_blank" style="text-decoration: none; color: inherit;">
+                        <img src="https://cdn-icons-png.flaticon.com/512/3767/3767084.png" alt="Image Compressor">
+                        <h3>Image Compressor</h3>
+                        <p>Reduce image size without losing quality.</p>
+                    </a>
                 </div>
                 <div class="tool-card">
-                    <img src="https://cdn-icons-png.flaticon.com/512/1997/1997928.png" alt="File Converter">
-                    <h3>File Converter</h3>
-                    <p>Convert files to various formats.</p>
+                    <a href="https://yourwebsite.com/pdf-to-word" target="_blank" style="text-decoration: none; color: inherit;">
+                        <img src="https://cdn-icons-png.flaticon.com/512/337/337946.png" alt="PDF to Word">
+                        <h3>PDF to Word</h3>
+                        <p>Convert PDF files to editable Word documents.</p>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <a href="https://yourwebsite.com/pdf-to-sheet" target="_blank" style="text-decoration: none; color: inherit;">
+                        <img src="https://cdn-icons-png.flaticon.com/512/1997/1997928.png" alt="PDF to Sheet">
+                        <h3>PDF to Sheet</h3>
+                        <p>Convert PDF files to Excel sheets.</p>
+                    </a>
                 </div>
             </div>
         </section>
@@ -333,5 +406,23 @@
     <footer>
         <p>&copy; 2023 Online Tools. All rights reserved.</p>
     </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom Script -->
+    <script>
+        // Dark Mode Toggle
+        function toggleDarkMode() {
+            const body = document.body;
+            body.classList.toggle('dark-mode');
+
+            const toggleButton = document.querySelector('.dark-mode-toggle');
+            if (body.classList.contains('dark-mode')) {
+                toggleButton.innerHTML = '<i class="fas fa-sun"></i>';
+            } else {
+                toggleButton.innerHTML = '<i class="fas fa-moon"></i>';
+            }
+        }
+    </script>
 </body>
 </html>
