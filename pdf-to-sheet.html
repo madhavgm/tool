@@ -1,218 +1,149 @@
+# pdf_to_excel_converter.py
+from flask import Flask, render_template_string, request, send_file
+from werkzeug.utils import secure_filename
+import pandas as pd
+import tabula
+import os
+import shutil
+
+app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = 'temp_uploads'
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB limit
+
+HTML_TEMPLATE = '''
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF से Excel कन्वर्टर | मुफ्त ऑनलाइन टूल</title>
-    <meta name="description" content="PDF फ़ाइलों को Excel में आसानी से कन्वर्ट करें। यह टूल पूरी तरह से मुफ्त और उपयोग में आसान है।">
-    <meta name="keywords" content="PDF to Excel, PDF कन्वर्टर, Excel कन्वर्टर, ऑनलाइन टूल">
-    <meta name="author" content="आपकी कंपनी">
-
+    <meta name="description" content="Convert PDF to Excel online for free. Fast, secure PDF to spreadsheet converter with advanced table recognition.">
+    <meta name="keywords" content="PDF to Excel, PDF converter, online PDF tools, spreadsheet converter">
+    
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-YOUR_AD_CLIENT_ID" crossorigin="anonymous"></script>
+    
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- PDF.js लाइब्रेरी (टेक्स्ट निकालने के लिए) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
-
-    <!-- SheetJS (XLSX) Excel कन्वर्ज़न के लिए -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <title>PDF to Excel Converter - Free Online Tool</title>
+    
     <style>
-        body {
-            background-color: #f0f2f5;
-        }
-        .converter-container {
-            max-width: 800px;
-            margin: 2rem auto;
-            padding: 2rem;
-            background-color: #fff;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            border-radius: 8px;
-        }
-        #dropZone {
-            border: 2px dashed #007bff;
-            padding: 2rem;
-            text-align: center;
-            margin: 1rem 0;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            border-radius: 8px;
-        }
-        #dropZone.dragover {
-            background-color: #e9f5ff;
-        }
-        .progress {
-            height: 20px;
-            display: none;
-            margin-top: 1rem;
-        }
-        footer {
-            background-color: #f8f9fa;
-            padding: 1rem;
-            text-align: center;
-            margin-top: 2rem;
-        }
+        .main-card { max-width: 800px; margin: 2rem auto; padding: 20px; }
+        .ad-unit { margin: 20px 0; padding: 10px; background: #f8f9fa; }
     </style>
 </head>
 <body>
-    <main class="container">
-        <div class="converter-container">
-            <h1 class="text-center mb-4">PDF से Excel कन्वर्टर</h1>
-            
-            <!-- ड्रैग-एंड-ड्रॉप ज़ोन -->
-            <div id="dropZone" tabindex="0">
-                <p>PDF फ़ाइल यहाँ ड्रॉप करें या <br> क्लिक करके चुनें</p>
-                <input type="file" id="fileInput" accept=".pdf" class="form-control" style="display: none;">
-                <p id="fileName" class="mt-2"></p>
-            </div>
+    <div class="container">
+        <!-- Header Ad -->
+        <div class="ad-unit text-center">
+            <ins class="adsbygoogle"
+                style="display:block"
+                data-ad-client="ca-pub-YOUR_AD_CLIENT_ID"
+                data-ad-slot="HEADER_AD_SLOT"
+                data-ad-format="auto"
+                data-full-width-responsive="true"></ins>
+        </div>
 
-            <!-- प्रोग्रेस बार -->
-            <div class="progress">
-                <div class="progress-bar progress-bar-striped" role="progressbar" style="width: 0%;">
-                </div>
-            </div>
-
-            <!-- कन्वर्ट बटन -->
-            <button id="convertBtn" class="btn btn-primary w-100 mt-3">
-                Excel में कन्वर्ट करें
-            </button>
-
-            <!-- डाउनलोड सेक्शन -->
-            <div id="resultSection" class="mt-3" style="display: none;">
-                <a id="downloadLink" class="btn btn-success w-100">
-                    Excel फ़ाइल डाउनलोड करें
-                </a>
+        <div class="main-card card shadow-lg">
+            <div class="card-body">
+                <h1 class="text-center mb-4">PDF to Excel Converter</h1>
+                
+                {% if error %}
+                <div class="alert alert-danger">{{ error }}</div>
+                {% endif %}
+                
+                <form method="post" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <input type="file" class="form-control" name="file" accept=".pdf" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Convert to Excel</button>
+                </form>
             </div>
         </div>
-    </main>
 
-    <footer>
-        <p>© 2023 PDF to Excel Converter. सर्वाधिकार सुरक्षित।</p>
-    </footer>
+        <!-- Content Section -->
+        <section class="mt-5">
+            <h2>Free PDF to Excel Conversion</h2>
+            <p>Convert PDF tables to Excel spreadsheets with perfect accuracy. Our tool supports:</p>
+            <ul>
+                <li>Multiple table extraction</li>
+                <li>Batch processing</li>
+                <li>Format preservation</li>
+                <li>Secure cloud processing</li>
+            </ul>
+        </section>
+
+        <!-- Footer Ad -->
+        <div class="ad-unit text-center">
+            <ins class="adsbygoogle"
+                style="display:block"
+                data-ad-client="ca-pub-YOUR_AD_CLIENT_ID"
+                data-ad-slot="FOOTER_AD_SLOT"
+                data-ad-format="auto"
+                data-full-width-responsive="true"></ins>
+        </div>
+    </div>
 
     <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- AdSense Script -->
     <script>
-        // ========= Drag & Drop Setup =========
-        const dropZone = document.getElementById('dropZone');
-        const fileInput = document.getElementById('fileInput');
-        const fileNameDisplay = document.getElementById('fileName');
-
-        dropZone.addEventListener('click', () => fileInput.click());
-
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.classList.add('dragover');
-        });
-
-        dropZone.addEventListener('dragleave', (e) => {
-            e.preventDefault();
-            dropZone.classList.remove('dragover');
-        });
-
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.classList.remove('dragover');
-            if (e.dataTransfer.files.length) {
-                fileInput.files = e.dataTransfer.files;
-                handleFile(fileInput.files[0]);
-            }
-        });
-
-        fileInput.addEventListener('change', function() {
-            if (this.files.length) {
-                handleFile(this.files[0]);
-            }
-        });
-
-        function handleFile(file) {
-            if (file.type !== 'application/pdf') {
-                alert('कृपया केवल PDF फ़ाइल चुनें');
-                fileInput.value = ''; // Reset file input
-                return;
-            }
-            fileNameDisplay.textContent = file.name;
-        }
-
-        // ========= Conversion Logic =========
-        const convertBtn = document.getElementById('convertBtn');
-        const progressBarContainer = document.querySelector('.progress');
-        const progressBar = document.querySelector('.progress-bar');
-        const resultSection = document.getElementById('resultSection');
-        const downloadLink = document.getElementById('downloadLink');
-
-        convertBtn.addEventListener('click', () => {
-            if (!fileInput.files.length) {
-                alert('कृपया PDF फ़ाइल चुनें');
-                return;
-            }
-            // प्रोग्रेस बार दिखाएं
-            progressBarContainer.style.display = 'block';
-            progressBar.style.width = '0%';
-            resultSection.style.display = 'none';
-
-            // थोड़ा-सा नकली लोडिंग इफ़ेक्ट दिखाने के लिए
-            let progress = 0;
-            const interval = setInterval(() => {
-                progress += 10;
-                progressBar.style.width = progress + '%';
-                if (progress >= 100) {
-                    clearInterval(interval);
-                    // असली PDF प्रोसेसिंग
-                    processPDF(fileInput.files[0]);
-                }
-            }, 300);
-        });
-
-        async function processPDF(file) {
-            try {
-                const arrayBuffer = await file.arrayBuffer();
-                const typedArray = new Uint8Array(arrayBuffer);
-
-                // PDF.js के ज़रिए PDF लोड करें
-                const pdf = await pdfjsLib.getDocument(typedArray).promise;
-                const totalPages = pdf.numPages;
-
-                // हम Excel में लिखने के लिए 2D ऐरे (array of arrays) तैयार करेंगे
-                // पहली पंक्ति में एक हेडर या बस कोई शीर्षक डाल सकते हैं
-                let excelData = [["PDF से निकाला गया डेटा"]];
-
-                for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
-                    const page = await pdf.getPage(pageNum);
-                    const textContent = await page.getTextContent();
-                    
-                    // एक पेज के सभी टेक्स्ट आइटम को स्पेस से जोड़ें
-                    let pageText = textContent.items.map(item => item.str).join(" ");
-                    // एक नई पंक्ति में यह टेक्स्ट डालें
-                    excelData.push([`पेज ${pageNum}`, pageText]);
-                }
-
-                // अब SheetJS का इस्तेमाल करके Excel फ़ाइल बनाएँ
-                const workbook = XLSX.utils.book_new();
-                const worksheet = XLSX.utils.aoa_to_sheet(excelData);
-                XLSX.utils.book_append_sheet(workbook, worksheet, "PDF डेटा");
-
-                // Excel फ़ाइल को arrayBuffer में बदलें
-                const excelBuffer = XLSX.write(workbook, { type: "array", bookType: "xlsx" });
-
-                // Blob तैयार करें
-                const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
-
-                // डाउनलोड लिंक सेट करें
-                downloadLink.href = URL.createObjectURL(blob);
-                downloadLink.download = "converted_file.xlsx";
-
-                // रिज़ल्ट दिखाएँ
-                resultSection.style.display = 'block';
-                progressBarContainer.style.display = 'none';
-
-            } catch (err) {
-                console.error(err);
-                alert('PDF को कन्वर्ट करने में त्रुटि हुई। कृपया फ़ाइल जांचें या बाद में पुनः प्रयास करें।');
-                progressBarContainer.style.display = 'none';
-            }
-        }
+        (adsbygoogle = window.adsbygoogle || []).push({});
     </script>
 </body>
 </html>
+'''
+
+def allowed_file(filename):
+    return '.' in filename and filename.lower().endswith('.pdf')
+
+@app.route('/', methods=['GET', 'POST'])
+def home():
+    error = None
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            error = "No file uploaded"
+            return render_template_string(HTML_TEMPLATE, error=error)
+            
+        file = request.files['file']
+        if file.filename == '':
+            error = "No file selected"
+            return render_template_string(HTML_TEMPLATE, error=error)
+
+        if file and allowed_file(file.filename):
+            try:
+                # Create temp directory
+                temp_dir = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(file.filename))
+                os.makedirs(temp_dir, exist_ok=True)
+
+                # Save uploaded file
+                filename = secure_filename(file.filename)
+                input_path = os.path.join(temp_dir, filename)
+                file.save(input_path)
+
+                # Convert PDF to Excel
+                dfs = tabula.read_pdf(input_path, pages='all', lattice=True, multiple_tables=True)
+                output_file = filename.rsplit('.', 1)[0] + '.xlsx'
+                output_path = os.path.join(temp_dir, output_file)
+
+                with pd.ExcelWriter(output_path) as writer:
+                    for i, df in enumerate(dfs):
+                        df.to_excel(writer, sheet_name=f'Sheet_{i+1}', index=False)
+
+                return send_file(output_path, as_attachment=True)
+            except Exception as e:
+                error = f"Conversion error: {str(e)}"
+                return render_template_string(HTML_TEMPLATE, error=error)
+            finally:
+                # Cleanup temp files
+                if os.path.exists(temp_dir):
+                    shutil.rmtree(temp_dir)
+        else:
+            error = "Invalid file type. Only PDF files are allowed."
+    
+    return render_template_string(HTML_TEMPLATE, error=error)
+
+if __name__ == '__main__':
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+    app.run(host='0.0.0.0', port=5000)
