@@ -60,6 +60,11 @@
                     <label for="trade-limit" class="block text-sm font-medium text-gray-700">Trade Limit</label>
                     <input type="number" id="trade-limit" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Enter trade limit">
                 </div>
+                <!-- Leverage Input -->
+                <div>
+                    <label for="leverage" class="block text-sm font-medium text-gray-700">Leverage</label>
+                    <input type="number" id="leverage" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Enter leverage">
+                </div>
                 <!-- Time Frame Selection -->
                 <div>
                     <label for="time-frame" class="block text-sm font-medium text-gray-700">Time Frame</label>
@@ -150,16 +155,18 @@
             const secretKey = document.getElementById('secret-key').value;
             const amount = document.getElementById('amount').value;
             const tradeLimit = document.getElementById('trade-limit').value;
+            const leverage = document.getElementById('leverage').value;
             const timeFrame = document.getElementById('time-frame').value;
 
-            if (!apiKey || !secretKey || !amount || !tradeLimit) {
-                alert('Please fill all fields: API Key, Secret Key, Amount, and Trade Limit.');
+            if (!apiKey || !secretKey || !amount || !tradeLimit || !leverage) {
+                alert('Please fill all fields: API Key, Secret Key, Amount, Trade Limit, and Leverage.');
                 return;
             }
 
             tradingParams.amount = amount;
             tradingParams.timeFrame = timeFrame;
             tradingParams.maxTrades = tradeLimit;
+            tradingParams.leverage = leverage;
 
             document.getElementById('bot-status').innerText = 'Status: Running';
             botInterval = setInterval(autoTrade, 60000); // Run every 60 seconds
@@ -191,7 +198,7 @@
         // Auto Risk Management
         function autoRiskManagement() {
             return {
-                leverage: 10,
+                leverage: tradingParams.leverage,
                 amount: tradingParams.amount,
                 tp: 5,
                 sl: 2,
