@@ -7,15 +7,17 @@
   <meta name="keywords" content="passport size photo, photo resizer, online photo tool, passport photo maker">
   <meta name="author" content="Your Name">
   <title>Passport Size Photo Maker</title>
-  <!-- Bootstrap CSS for responsiveness -->
+  <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Cropper.js for image cropping -->
+  <!-- Cropper.js CSS -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" rel="stylesheet">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <!-- Custom CSS -->
   <style>
     body {
       background-color: #f8f9fa;
-      font-family: 'Arial', sans-serif;
+      font-family: 'Poppins', sans-serif;
     }
     .container {
       max-width: 800px;
@@ -26,24 +28,41 @@
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
     h1 {
-      font-size: 2rem;
-      font-weight: bold;
+      font-size: 2.5rem;
+      font-weight: 600;
       color: #333;
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
+    }
+    .subheading {
+      font-size: 1.1rem;
+      color: #666;
+      text-align: center;
+      margin-bottom: 30px;
     }
     .upload-section {
       border: 2px dashed #007bff;
-      padding: 20px;
+      padding: 30px;
       text-align: center;
       border-radius: 10px;
       background: #f1f8ff;
       margin-bottom: 20px;
+      transition: border-color 0.3s ease;
+    }
+    .upload-section:hover {
+      border-color: #0056b3;
     }
     .upload-section label {
       font-size: 1.2rem;
       color: #007bff;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .upload-section label i {
+      font-size: 1.5rem;
+      margin-right: 10px;
     }
     .upload-section input {
       display: none;
@@ -57,14 +76,19 @@
     }
     .cropper-container {
       margin: 20px auto;
+      text-align: center;
     }
     .btn-primary {
       width: 100%;
-      padding: 10px;
+      padding: 12px;
       font-size: 1.1rem;
       background-color: #007bff;
       border: none;
       border-radius: 5px;
+      transition: background-color 0.3s ease;
+    }
+    .btn-primary:hover {
+      background-color: #0056b3;
     }
     .btn-primary:disabled {
       background-color: #6c757d;
@@ -87,11 +111,19 @@
       width: 40px;
       height: 40px;
     }
+    .placeholder-image {
+      width: 100%;
+      max-width: 300px;
+      margin: 20px auto;
+      display: block;
+      opacity: 0.7;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Passport Size Photo Maker</h1>
+    <p class="subheading">Resize and crop your image to 35mm x 45mm for professional passport photos.</p>
 
     <!-- AdSense Ad Unit -->
     <div class="ad-container">
@@ -111,9 +143,14 @@
 
     <!-- Image Upload Section -->
     <div class="upload-section">
-      <label for="image-upload">📤 Upload Your Photo</label>
+      <label for="image-upload">
+        <i class="fas fa-upload"></i> 📤 Upload Your Photo
+      </label>
       <input type="file" id="image-upload" accept="image/*">
     </div>
+
+    <!-- Placeholder Image -->
+    <img src="https://via.placeholder.com/300x400" alt="Placeholder Image" class="placeholder-image" id="placeholder-image">
 
     <!-- Loading Spinner -->
     <div class="loading-spinner" id="loading-spinner">
@@ -157,6 +194,7 @@
       if (file) {
         // Show Loading Spinner
         document.getElementById('loading-spinner').style.display = 'block';
+        document.getElementById('placeholder-image').style.display = 'none';
 
         const reader = new FileReader();
         reader.onload = function (event) {
