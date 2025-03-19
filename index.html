@@ -14,16 +14,16 @@
     <!-- Custom Styles -->
     <style>
         :root {
-            --primary-color: #007BFF;
-            --secondary-color: #00BFFF;
-            --background-light: #f9f9f9;
+            --primary-color: #6C63FF; /* Purple */
+            --secondary-color: #FF6584; /* Pink */
+            --background-light: #F5F5F5;
             --text-light: #333;
-            --background-dark: #1a1a1a;
-            --text-dark: #f9f9f9;
-            --card-bg-light: #fff;
-            --card-bg-dark: #333;
+            --background-dark: #1A1A1A;
+            --text-dark: #F5F5F5;
+            --card-bg-light: #FFFFFF;
+            --card-bg-dark: #2C2C2C;
             --card-text-light: #666;
-            --card-text-dark: #ccc;
+            --card-text-dark: #CCC;
         }
 
         body {
@@ -46,26 +46,30 @@
             color: inherit;
         }
 
+        /* Header */
         header {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: #fff;
-            padding: 80px 10%;
+            padding: 100px 10%;
             text-align: center;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
         header h1 {
             margin: 0;
-            font-size: 2.8rem;
+            font-size: 3rem;
             font-weight: 700;
+            animation: fadeIn 1s ease-in-out;
         }
 
         header p {
             margin: 10px 0 0;
             font-size: 1.2rem;
             font-weight: 400;
+            animation: fadeIn 1.5s ease-in-out;
         }
 
+        /* Dark Mode Toggle */
         .dark-mode-toggle {
             position: fixed;
             top: 20px;
@@ -77,73 +81,82 @@
             border-radius: 50%;
             cursor: pointer;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: background 0.3s ease;
+            transition: background 0.3s ease, transform 0.3s ease;
             z-index: 1000;
         }
 
         .dark-mode-toggle:hover {
-            background: #0056b3;
+            background: var(--secondary-color);
+            transform: scale(1.1);
         }
 
+        /* Main Content */
         main {
             padding: 40px 10%;
         }
 
-        .categories, .tool-grid, .testimonial-grid {
+        /* Tool Categories Section */
+        .categories {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 30px;
             margin-top: 40px;
         }
 
-        .category-card, .tool-card, .testimonial-card {
+        .category-card {
             background-color: var(--card-bg-light);
-            border-radius: 10px;
+            border-radius: 15px;
             padding: 25px;
             text-align: center;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .category-card:hover, .tool-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        .category-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
         }
 
-        .category-card img, .tool-card img {
+        .category-card img {
             width: 80px;
             height: 80px;
             margin-bottom: 20px;
+            transition: transform 0.3s ease;
         }
 
-        .category-card h3, .tool-card h3 {
+        .category-card:hover img {
+            transform: scale(1.1);
+        }
+
+        .category-card h3 {
             margin: 0;
             font-size: 1.5rem;
             font-weight: 600;
         }
 
-        .category-card p, .tool-card p {
+        .category-card p {
             margin: 10px 0 0;
             font-size: 1rem;
             color: var(--card-text-light);
         }
 
-        body.dark-mode .category-card, body.dark-mode .tool-card, body.dark-mode .testimonial-card {
+        body.dark-mode .category-card {
             background-color: var(--card-bg-dark);
             color: var(--text-dark);
         }
 
-        body.dark-mode .category-card p, body.dark-mode .tool-card p, body.dark-mode .testimonial-card p {
+        body.dark-mode .category-card p {
             color: var(--card-text-dark);
         }
 
+        /* Call-to-Action Section */
         .cta {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: #fff;
             padding: 80px 20px;
             text-align: center;
             margin-top: 80px;
-            border-radius: 10px;
+            border-radius: 15px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
@@ -170,9 +183,62 @@
 
         .cta-button:hover {
             background-color: #f1f1f1;
-            color: #0056b3;
+            color: var(--secondary-color);
         }
 
+        /* Testimonials Section */
+        .testimonials {
+            margin-top: 80px;
+            text-align: center;
+        }
+
+        .testimonials h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 50px;
+        }
+
+        .testimonial-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+
+        .testimonial-card {
+            background-color: var(--card-bg-light);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .testimonial-card p {
+            margin: 0;
+            font-size: 1rem;
+            color: var(--card-text-light);
+        }
+
+        .testimonial-card span {
+            display: block;
+            margin-top: 10px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        body.dark-mode .testimonial-card {
+            background-color: var(--card-bg-dark);
+            color: var(--text-dark);
+        }
+
+        body.dark-mode .testimonial-card p {
+            color: var(--card-text-dark);
+        }
+
+        body.dark-mode .testimonial-card span {
+            color: var(--secondary-color);
+        }
+
+        /* Footer */
         footer {
             background-color: var(--card-bg-dark);
             color: #fff;
@@ -186,6 +252,13 @@
             font-size: 1rem;
         }
 
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Responsive Design */
         @media (max-width: 768px) {
             header h1 {
                 font-size: 2.2rem;
@@ -203,7 +276,7 @@
                 font-size: 1rem;
             }
 
-            .categories, .tool-grid, .testimonial-grid {
+            .categories, .testimonial-grid {
                 grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             }
         }
@@ -217,7 +290,7 @@
                 padding: 20px 5%;
             }
 
-            .categories, .tool-grid, .testimonial-grid {
+            .categories, .testimonial-grid {
                 grid-template-columns: 1fr;
             }
         }
