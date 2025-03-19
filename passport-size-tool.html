@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Free Online Passport Size Photo Maker Tool. Resize and crop your image to 35mm x 45mm for professional passport photos.">
+  <meta name="keywords" content="passport size photo, photo resizer, online photo tool, passport photo maker">
+  <meta name="author" content="Your Name">
+  <title>Passport Size Photo Maker</title>
+  <!-- Bootstrap CSS for responsiveness -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Cropper.js for image cropping -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" rel="stylesheet">
+  <!-- Custom CSS -->
+  <style>
+    body {
+      background-color: #f8f9fa;
+      font-family: 'Arial', sans-serif;
+    }
+    .container {
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #333;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .upload-section {
+      border: 2px dashed #007bff;
+      padding: 20px;
+      text-align: center;
+      border-radius: 10px;
+      background: #f1f8ff;
+      margin-bottom: 20px;
+    }
+    .upload-section label {
+      font-size: 1.2rem;
+      color: #007bff;
+      cursor: pointer;
+    }
+    .upload-section input {
+      display: none;
+    }
+    #image-preview {
+      max-width: 100%;
+      height: auto;
+      margin: 20px 0;
+      border-radius: 10px;
+      display: none;
+    }
+    .cropper-container {
+      margin: 20px auto;
+    }
+    .btn-primary {
+      width: 100%;
+      padding: 10px;
+      font-size: 1.1rem;
+      background-color: #007bff;
+      border: none;
+      border-radius: 5px;
+    }
+    .btn-primary:disabled {
+      background-color: #6c757d;
+      cursor: not-allowed;
+    }
+    .ad-container {
+      margin: 20px auto;
+      text-align: center;
+      background: #f9f9f9;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+    .loading-spinner {
+      display: none;
+      text-align: center;
+      margin: 20px 0;
+    }
+    .loading-spinner img {
+      width: 40px;
+      height: 40px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Passport Size Photo Maker</h1>
+
+    <!-- AdSense Ad Unit -->
+    <div class="ad-container">
+      <p>Advertisement</p>
+      <!-- Paste your Google AdSense Ad Unit ID here -->
+      <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-YOUR_AD_UNIT_ID" crossorigin="anonymous"></script>
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-YOUR_AD_UNIT_ID"
+           data-ad-slot="1234567890"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>
+           (adsbygoogle = window.adsbygoogle || []).push({});
+      </script>
+    </div>
+
+    <!-- Image Upload Section -->
+    <div class="upload-section">
+      <label for="image-upload">📤 Upload Your Photo</label>
+      <input type="file" id="image-upload" accept="image/*">
+    </div>
+
+    <!-- Loading Spinner -->
+    <div class="loading-spinner" id="loading-spinner">
+      <img src="https://i.gifer.com/ZZ5H.gif" alt="Loading...">
+    </div>
+
+    <!-- Image Preview and Cropper -->
+    <div class="cropper-container">
+      <img id="image-preview" src="" alt="Uploaded Image Preview">
+    </div>
+
+    <!-- Download Button -->
+    <button id="download-btn" class="btn btn-primary" disabled>Download Passport Size Photo</button>
+
+    <!-- AdSense Ad Unit -->
+    <div class="ad-container">
+      <p>Advertisement</p>
+      <!-- Paste your Google AdSense Ad Unit ID here -->
+      <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-YOUR_AD_UNIT_ID" crossorigin="anonymous"></script>
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-YOUR_AD_UNIT_ID"
+           data-ad-slot="0987654321"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>
+           (adsbygoogle = window.adsbygoogle || []).push({});
+      </script>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS and Cropper.js -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+  <script>
+    let cropper;
+
+    // Image Upload Handler
+    document.getElementById('image-upload').addEventListener('change', function (e) {
+      const file = e.target.files[0];
+      if (file) {
+        // Show Loading Spinner
+        document.getElementById('loading-spinner').style.display = 'block';
+
+        const reader = new FileReader();
+        reader.onload = function (event) {
+          const imagePreview = document.getElementById('image-preview');
+          imagePreview.src = event.target.result;
+          imagePreview.style.display = 'block';
+
+          // Hide Loading Spinner
+          document.getElementById('loading-spinner').style.display = 'none';
+
+          // Initialize Cropper.js
+          if (cropper) {
+            cropper.destroy();
+          }
+          cropper = new Cropper(imagePreview, {
+            aspectRatio: 35 / 45, // Passport size ratio
+            viewMode: 1,
+            autoCropArea: 0.8,
+            responsive: true,
+          });
+
+          // Enable Download Button
+          document.getElementById('download-btn').disabled = false;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Download Handler
+    document.getElementById('download-btn').addEventListener('click', function () {
+      if (cropper) {
+        const canvas = cropper.getCroppedCanvas({
+          width: 413, // 35mm at 300 DPI
+          height: 531, // 45mm at 300 DPI
+        });
+        const link = document.createElement('a');
+        link.href = canvas.toDataURL('image/jpeg');
+        link.download = 'passport-size-photo.jpg';
+        link.click();
+      }
+    });
+  </script>
+</body>
+</html>
