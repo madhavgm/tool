@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Fully Automated Binance Trading Bot">
+    <meta name="keywords" content="Binance, Trading Bot, Crypto, Automated Trading">
+    <meta name="author" content="Your Name">
+    <title>Auto Trading Bot</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-container {
+            height: 400px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Header -->
+    <header class="bg-gray-800 text-white py-4">
+        <div class="container mx-auto text-center">
+            <h1 class="text-3xl font-bold">Fully Automated Trading Bot</h1>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto p-4">
+        <!-- Bot Controls -->
+        <section class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h2 class="text-2xl font-bold mb-4">Bot Controls</h2>
+            <div class="flex gap-4">
+                <button id="start-bot" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Start Bot</button>
+                <button id="stop-bot" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Stop Bot</button>
+            </div>
+            <div id="bot-status" class="mt-4">Status: Idle</div>
+        </section>
+
+        <!-- User Settings -->
+        <section class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h2 class="text-xl font-bold mb-4">User Settings</h2>
+            <div class="space-y-4">
+                <!-- API Key Input -->
+                <div>
+                    <label for="api-key" class="block text-sm font-medium text-gray-700">API Key</label>
+                    <input type="text" id="api-key" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Enter your API Key">
+                </div>
+                <!-- Secret Key Input -->
+                <div>
+                    <label for="secret-key" class="block text-sm font-medium text-gray-700">Secret Key</label>
+                    <input type="password" id="secret-key" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Enter your Secret Key">
+                </div>
+                <!-- Amount Input -->
+                <div>
+                    <label for="amount" class="block text-sm font-medium text-gray-700">Amount (USD)</label>
+                    <input type="number" id="amount" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Enter amount to trade">
+                </div>
+                <!-- Trade Limit Input -->
+                <div>
+                    <label for="trade-limit" class="block text-sm font-medium text-gray-700">Trade Limit</label>
+                    <input type="number" id="trade-limit" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Enter trade limit">
+                </div>
+                <!-- Time Frame Selection -->
+                <div>
+                    <label for="time-frame" class="block text-sm font-medium text-gray-700">Time Frame</label>
+                    <select id="time-frame" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <option value="1m">1 Minute</option>
+                        <option value="5m">5 Minutes</option>
+                        <option value="15m">15 Minutes</option>
+                        <option value="1h">1 Hour</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <!-- Trading Log -->
+        <section class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h2 class="text-xl font-bold mb-4">Trading Log</h2>
+            <div id="log-entries" class="space-y-2"></div>
+        </section>
+
+        <!-- Chart -->
+        <section class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <div class="chart-container">
+                <canvas id="price-chart"></canvas>
+            </div>
+        </section>
+
+        <!-- Advertisements -->
+        <section class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h2 class="text-xl font-bold mb-4">Advertisements</h2>
+            <div id="ad-container" class="text-center">
+                <!-- Google AdSense Ad Unit -->
+                <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-YOUR_AD_SENSE_ID" crossorigin="anonymous"></script>
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-client="ca-pub-YOUR_AD_SENSE_ID"
+                     data-ad-slot="YOUR_AD_SLOT_ID"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
+                <script>
+                    (adsbygoogle = window.adsbygoogle || []).push({});
+                </script>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-4 text-center">
+        <p>&copy; 2023 Auto Trading Bot. All rights reserved.</p>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // Chart Initialization
+        const ctx = document.getElementById('price-chart').getContext('2d');
+        const priceChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Price',
+                    data: [],
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+
+        // Bot Variables
+        let botInterval;
+        let tradingParams = {
+            leverage: 10,
+            amount: 100,
+            tp: 5,
+            sl: 2,
+            maxTrades: 1,
+            selectedCoin: '',
+            timeFrame: '1m',
+            strategy: 'ma-crossover'
+        };
+
+        // Start Bot
+        document.getElementById('start-bot').addEventListener('click', async function() {
+            const apiKey = document.getElementById('api-key').value;
+            const secretKey = document.getElementById('secret-key').value;
+            const amount = document.getElementById('amount').value;
+            const tradeLimit = document.getElementById('trade-limit').value;
+            const timeFrame = document.getElementById('time-frame').value;
+
+            if (!apiKey || !secretKey || !amount || !tradeLimit) {
+                alert('Please fill all fields: API Key, Secret Key, Amount, and Trade Limit.');
+                return;
+            }
+
+            tradingParams.amount = amount;
+            tradingParams.timeFrame = timeFrame;
+            tradingParams.maxTrades = tradeLimit;
+
+            document.getElementById('bot-status').innerText = 'Status: Running';
+            botInterval = setInterval(autoTrade, 60000); // Run every 60 seconds
+            logTrade('Bot started.');
+        });
+
+        // Stop Bot
+        document.getElementById('stop-bot').addEventListener('click', function() {
+            clearInterval(botInterval);
+            document.getElementById('bot-status').innerText = 'Status: Idle';
+            logTrade('Bot stopped.');
+        });
+
+        // Auto Select Coin
+        async function autoSelectCoin() {
+            const url = 'https://fapi.binance.com/fapi/v1/ticker/24hr';
+            const response = await fetch(url);
+            const data = await response.json();
+            const sortedCoins = data.sort((a, b) => b.quoteVolume - a.quoteVolume);
+            return sortedCoins[0].symbol; // Top coin by volume
+        }
+
+        // Auto Select Strategy
+        function autoSelectStrategy() {
+            const strategies = ['ma-crossover', 'rsi', 'bollinger'];
+            return strategies[Math.floor(Math.random() * strategies.length)]; // Random selection for now
+        }
+
+        // Auto Risk Management
+        function autoRiskManagement() {
+            return {
+                leverage: 10,
+                amount: tradingParams.amount,
+                tp: 5,
+                sl: 2,
+                maxTrades: tradingParams.maxTrades
+            };
+        }
+
+        // Auto Backtesting
+        async function autoBacktest(strategy, historicalData) {
+            // Placeholder for backtesting logic
+            return Math.random() > 0.5; // Random result for now
+        }
+
+        // Auto Trade
+        async function autoTrade() {
+            const selectedCoin = await autoSelectCoin();
+            const selectedStrategy = autoSelectStrategy();
+            const riskParams = autoRiskManagement();
+
+            // Fetch historical data
+            const historicalData = await fetchHistoricalData(selectedCoin, tradingParams.timeFrame, 50);
+
+            // Backtest strategy
+            const isProfitable = await autoBacktest(selectedStrategy, historicalData);
+
+            if (isProfitable) {
+                // Execute trading strategy
+                executeTradingStrategy(selectedCoin, tradingParams.timeFrame, selectedStrategy, riskParams);
+            }
+        }
+
+        // Execute Trading Strategy
+        async function executeTradingStrategy(coin, timeFrame, strategy, riskParams) {
+            const historicalData = await fetchHistoricalData(coin, timeFrame, 50);
+
+            // Update chart
+            updateChart(historicalData);
+
+            // Execute strategy
+            if (strategy === 'ma-crossover') {
+                executeMACrossover(historicalData);
+            } else if (strategy === 'rsi') {
+                executeRSIStrategy(historicalData);
+            } else if (strategy === 'bollinger') {
+                executeBollingerStrategy(historicalData);
+            }
+        }
+
+        // Moving Average Crossover Strategy
+        function executeMACrossover(data) {
+            const shortMA = calculateMovingAverage(data, 10);
+            const longMA = calculateMovingAverage(data, 50);
+
+            if (shortMA > longMA) {
+                logTrade(`Buy Signal: Short MA > Long MA for ${tradingParams.selectedCoin}`);
+            } else if (shortMA < longMA) {
+                logTrade(`Sell Signal: Short MA < Long MA for ${tradingParams.selectedCoin}`);
+            }
+        }
+
+        // RSI Strategy
+        function executeRSIStrategy(data) {
+            const rsi = calculateRSI(data, 14);
+            if (rsi > 70) {
+                logTrade(`Sell Signal: RSI > 70 (Overbought) for ${tradingParams.selectedCoin}`);
+            } else if (rsi < 30) {
+                logTrade(`Buy Signal: RSI < 30 (Oversold) for ${tradingParams.selectedCoin}`);
+            }
+        }
+
+        // Bollinger Bands Strategy
+        function executeBollingerStrategy(data) {
+            const { upperBand, lowerBand } = calculateBollingerBands(data, 20, 2);
+            const currentPrice = data[data.length - 1];
+
+            if (currentPrice > upperBand) {
+                logTrade(`Sell Signal: Price > Upper Bollinger Band for ${tradingParams.selectedCoin}`);
+            } else if (currentPrice < lowerBand) {
+                logTrade(`Buy Signal: Price < Lower Bollinger Band for ${tradingParams.selectedCoin}`);
+            }
+        }
+
+        // Fetch Historical Data
+        async function fetchHistoricalData(symbol, interval, limit) {
+            const url = `https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            return data.map(candle => parseFloat(candle[4])); // Closing prices
+        }
+
+        // Calculate Moving Average
+        function calculateMovingAverage(data, period) {
+            const sum = data.slice(-period).reduce((acc, price) => acc + price, 0);
+            return sum / period;
+        }
+
+        // Calculate RSI
+        function calculateRSI(data, period) {
+            let gains = 0;
+            let losses = 0;
+            for (let i = 1; i < period; i++) {
+                const change = data[i] - data[i - 1];
+                if (change > 0) gains += change;
+                else losses -= change;
+            }
+            const rs = gains / losses;
+            return 100 - (100 / (1 + rs));
+        }
+
+        // Calculate Bollinger Bands
+        function calculateBollingerBands(data, period, multiplier) {
+            const sma = calculateMovingAverage(data, period);
+            const stdDev = Math.sqrt(data.slice(-period).reduce((acc, price) => acc + Math.pow(price - sma, 2), 0) / period);
+            return {
+                upperBand: sma + (stdDev * multiplier),
+                lowerBand: sma - (stdDev * multiplier)
+            };
+        }
+
+        // Update Chart
+        function updateChart(data) {
+            priceChart.data.labels = Array.from({ length: data.length }, (_, i) => i + 1);
+            priceChart.data.datasets[0].data = data;
+            priceChart.update();
+        }
+
+        // Log Trading Actions
+        function logTrade(message) {
+            const logElement = document.getElementById('log-entries');
+            logElement.innerHTML += `<p class="text-sm">${new Date().toLocaleTimeString()}: ${message}</p>`;
+        }
+    </script>
+</body>
+</html>
