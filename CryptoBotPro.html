@@ -39,26 +39,35 @@
         <section class="bg-white p-6 rounded-lg shadow-md mb-6">
             <h2 class="text-xl font-bold mb-4">Configuration</h2>
             <div class="space-y-4">
+                <!-- API Key -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700">API Key</label>
                     <input type="text" id="api-key" class="mt-1 block w-full p-2 border rounded-md">
                 </div>
+                <!-- Secret Key -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Secret Key</label>
                     <input type="password" id="secret-key" class="mt-1 block w-full p-2 border rounded-md">
                 </div>
+                <!-- Trade Amount -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Trade Amount ($)</label>
                     <input type="number" id="amount" class="mt-1 block w-full p-2 border rounded-md" value="100">
+                    <p class="text-sm text-gray-500 mt-1">Current Trade Amount: <span id="current-amount">100</span> USDT</p>
                 </div>
+                <!-- Trade Limit -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Trade Limit</label>
                     <input type="number" id="trade-limit" class="mt-1 block w-full p-2 border rounded-md" value="10">
+                    <p class="text-sm text-gray-500 mt-1">Current Trade Limit: <span id="current-trade-limit">10</span></p>
                 </div>
+                <!-- Leverage -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Leverage</label>
                     <input type="number" id="leverage" class="mt-1 block w-full p-2 border rounded-md" value="10">
+                    <p class="text-sm text-gray-500 mt-1">Current Leverage: <span id="current-leverage">10</span>x</p>
                 </div>
+                <!-- Time Frame -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Time Frame</label>
                     <select id="time-frame" class="mt-1 block w-full p-2 border rounded-md">
@@ -66,6 +75,7 @@
                         <option value="5m">5 Minutes</option>
                         <option value="15m">15 Minutes</option>
                     </select>
+                    <p class="text-sm text-gray-500 mt-1">Current Time Frame: <span id="current-time-frame">1 Minute</span></p>
                 </div>
             </div>
         </section>
@@ -143,8 +153,38 @@
             return { ma10, ma50 };
         }
 
+        async function checkBalance() {
+            try {
+                const timestamp = Date.now();
+                const params = new URLSearchParams({ timestamp });
+                const signature = CryptoJS.HmacSHA256(params.toString(), document.getElementById('secret-key').value).toString(CryptoJS.enc.Hex);
+
+                const response = await fetch(`https://fapi.binance.com/fapi/v2/balance?${params.toString()}&signature=${signature}`, {
+                    method: 'GET',
+                    headers: {
+                        'X-MBX-APIKEY': document.getElementById('api-key').value,
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    }
+                });
+
+                const balances = await response.json();
+                const usdtBalance = balances.find(b => b.asset === 'USDT');
+                return usdtBalance ? parseFloat(usdtBalance.balance) : 0;
+            } catch (error) {
+                logError(`Balance check failed: ${error.message}`);
+                return 0;
+            }
+        }
+
         async function executeTrade(symbol, action) {
             try {
+                // Check balance
+                const balance = await checkBalance();
+                if (balance < tradingConfig.amount / tradingConfig.leverage) {
+                    logError(`Insufficient balance. Required: ${tradingConfig.amount / tradingConfig.leverage} USDT, Available: ${balance} USDT`);
+                    return;
+                }
+
                 const timestamp = Date.now();
                 const quantity = (tradingConfig.amount / priceChart.data.datasets[0].data[priceChart.data.datasets[0].data.length - 1]).toFixed(4); // Calculate quantity based on current price
 
@@ -175,6 +215,8 @@
                     logError(`Trade failed: ${result.msg}`);
                     if (result.msg.includes('API-key') || result.msg.includes('permissions')) {
                         logError('Please check your API key, IP restrictions, and permissions in your Binance account.');
+                    } else if (result.msg.includes('Signature')) {
+                        logError('Invalid signature. Please check your API key and secret key.');
                     }
                 }
             } catch (error) {
@@ -256,7 +298,29 @@
         // Update Trade Limit Dynamically
         document.getElementById('trade-limit').addEventListener('change', (e) => {
             tradingConfig.tradeLimit = parseInt(e.target.value);
+            document.getElementById('current-trade-limit').textContent = e.target.value;
             logTrade(`Trade limit updated to ${tradingConfig.tradeLimit}`);
+        });
+
+        // Update Trade Amount Dynamically
+        document.getElementById('amount').addEventListener('change', (e) => {
+            tradingConfig.amount = parseFloat(e.target.value);
+            document.getElementById('current-amount').textContent = e.target.value;
+            logTrade(`Trade amount updated to ${tradingConfig.amount} USDT`);
+        });
+
+        // Update Leverage Dynamically
+        document.getElementById('leverage').addEventListener('change', (e) => {
+            tradingConfig.leverage = parseInt(e.target.value);
+            document.getElementById('current-leverage').textContent = e.target.value;
+            logTrade(`Leverage updated to ${tradingConfig.leverage}x`);
+        });
+
+        // Update Time Frame Dynamically
+        document.getElementById('time-frame').addEventListener('change', (e) => {
+            tradingConfig.timeframe = e.target.value;
+            document.getElementById('current-time-frame').textContent = e.target.options[e.target.selectedIndex].text;
+            logTrade(`Time frame updated to ${e.target.options[e.target.selectedIndex].text}`);
         });
 
         // Helpers
@@ -268,9 +332,6 @@
                 logError('API Key and Secret Key are required.');
                 return false;
             }
-
-            console.log('API Key:', apiKey); // Debug log
-            console.log('Secret Key:', secretKey); // Debug log
             return true;
         }
 
