@@ -146,18 +146,20 @@
         async function executeTrade(symbol, action) {
             try {
                 const timestamp = Date.now();
+                const quantity = (tradingConfig.amount / priceChart.data.datasets[0].data[priceChart.data.datasets[0].data.length - 1]).toFixed(4); // Calculate quantity based on current price
+
                 const params = new URLSearchParams({
                     symbol,
                     side: action.toUpperCase(),
                     type: 'MARKET',
-                    quantity: tradingConfig.amount,
-                    timestamp
+                    quantity,
+                    timestamp,
+                    leverage: tradingConfig.leverage
                 });
-                
-                const signature = CryptoJS.HmacSHA256(params.toString(), 
-                    document.getElementById('secret-key').value).toString(CryptoJS.enc.Hex);
 
-                const response = await fetch(`https://fapi.binance.com/fapi/v1/order?${params}&signature=${signature}`, {
+                const signature = CryptoJS.HmacSHA256(params.toString(), document.getElementById('secret-key').value).toString(CryptoJS.enc.Hex);
+
+                const response = await fetch(`https://fapi.binance.com/fapi/v1/order?${params.toString()}&signature=${signature}`, {
                     method: 'POST',
                     headers: {
                         'X-MBX-APIKEY': document.getElementById('api-key').value,
@@ -166,11 +168,14 @@
                 });
 
                 const result = await response.json();
-                if(result.status === 'FILLED') {
+                if (result.status === 'FILLED' || result.status === 'NEW') {
                     tradeCount++; // Increment trade count
                     logTrade(`${action.toUpperCase()} order executed for ${symbol} (Trade ${tradeCount}/${tradingConfig.tradeLimit})`);
                 } else {
                     logError(`Trade failed: ${result.msg}`);
+                    if (result.msg.includes('API-key') || result.msg.includes('permissions')) {
+                        logError('Please check your API key, IP restrictions, and permissions in your Binance account.');
+                    }
                 }
             } catch (error) {
                 logError(`Trade execution error: ${error.message}`);
@@ -205,14 +210,14 @@
         }
 
         async function mainBotLoop() {
-            if(!botActive || tradeCount >= tradingConfig.tradeLimit) return;
-            
+            if (!botActive || tradeCount >= tradingConfig.tradeLimit) return;
+
             try {
                 const response = await fetch('https://fapi.binance.com/fapi/v1/exchangeInfo');
                 const { symbols } = await response.json();
-                const perpetualSymbols = symbols.filter(s => s.contractType === 'PERPETUAL');
-                
-                for(const symbol of perpetualSymbols) {
+                const perpetualSymbols = symbols.filter(s => s.contractType === 'PERPETUAL' && s.status === 'TRADING');
+
+                for (const symbol of perpetualSymbols) {
                     if (!botActive || tradeCount >= tradingConfig.tradeLimit) break;
                     await analyzeMarket(symbol.symbol);
                     await new Promise(resolve => setTimeout(resolve, 1000)); // Rate limit
@@ -220,7 +225,7 @@
             } catch (error) {
                 logError(`Main loop error: ${error.message}`);
             }
-            
+
             if (botActive && tradeCount < tradingConfig.tradeLimit) {
                 setTimeout(mainBotLoop, 60000); // Run every minute
             }
@@ -235,7 +240,7 @@
 
         // UI Handlers
         document.getElementById('start-bot').addEventListener('click', () => {
-            if(!validateCredentials()) return;
+            if (!validateCredentials()) return;
             botActive = true;
             tradeCount = 0; // Reset trade count
             tradingConfig.tradeLimit = parseInt(document.getElementById('trade-limit').value); // Update trade limit
@@ -256,8 +261,17 @@
 
         // Helpers
         function validateCredentials() {
-            return document.getElementById('api-key').value && 
-                   document.getElementById('secret-key').value;
+            const apiKey = document.getElementById('api-key').value;
+            const secretKey = document.getElementById('secret-key').value;
+
+            if (!apiKey || !secretKey) {
+                logError('API Key and Secret Key are required.');
+                return false;
+            }
+
+            console.log('API Key:', apiKey); // Debug log
+            console.log('Secret Key:', secretKey); // Debug log
+            return true;
         }
 
         function logTrade(message) {
